@@ -23,6 +23,7 @@
   <ItemGroup>
     <Compile Include="cjsfb.py" />
     <Compile Include="gui.py" />
+    <Compile Include="jsonencoder.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

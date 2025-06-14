@@ -10,7 +10,7 @@ import json
 class Jsfb:
 	def ReadHeader(self, JSFB):
 		try:
-			Offset, _ = unpack("<2H", JSFB.read(4))
+			Offset = unpack("<I", JSFB.read(4))[0]
 		except StructError:
 			raise ValueError("Failed to unpack header — file too short or corrupt")
 
