@@ -1,7 +1,10 @@
 from struct import unpack, error as StructError
 from typing import BinaryIO
 from io import BytesIO
+import string
 import json
+
+
 
 
 class Jsfb:
@@ -106,14 +109,36 @@ class Jsfb:
 				raise ValueError(f"ExportPointer: Field offset+size ({Offset + Size}) exceeds file size ({file_size})")
 
 			JSFB.seek(Offset)
+			block = JSFB.read(Size)
+
+			def is_likely_string(data: bytes) -> bool:
+				if not data or b'\x00' in data[:-1]:  # allow final null, but not mid-null
+					return False
+				try:
+					decoded = data.decode('utf-8')
+				except UnicodeDecodeError:
+					try:
+						decoded = data.decode('latin1')
+					except UnicodeDecodeError:
+						return False
+				# Check if all chars are printable (space or better)
+				return all(c in string.printable for c in decoded)
 
 			if Schema is None:
-				for i in range(Size // 4):
-					raw = JSFB.read(4)
-					if len(raw) < 4:
-						self.YourJSON[f'unknown{i}'] = 'incomplete'
-					else:
-						self.YourJSON[f'unknown{i}'] = unpack('<I', raw)[0]
+				if is_likely_string(block):
+					try:
+						self.YourJSON['string'] = block.decode('utf-8')
+					except UnicodeDecodeError:
+						self.YourJSON['string'] = block.decode('latin1')
+				else:
+					# Default to DWORD readout
+					JSFB.seek(Offset)
+					for i in range(Size // 4):
+						raw = JSFB.read(4)
+						if len(raw) < 4:
+							self.YourJSON[f'unknown{i}'] = 'incomplete'
+						else:
+							self.YourJSON[f'unknown{i}'] = unpack('<I', raw)[0]
 
 		with open(f'{name}.json', 'w') as OUTSIDE:
 			json.dump(self.YourJSON, OUTSIDE, indent=4)
