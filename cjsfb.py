@@ -26,20 +26,29 @@ class Jsfb:
 		self.Info = []
 		for i in range(self.Count):
 			cp = self.VTable.tell()
-			Offset1, Offset2 = unpack("<2I", self.VTable.read(8))
+			Offset1 = unpack("<I", self.VTable.read(4))[0]
+
+			# Peek ahead only if there's another field
 			if i + 1 < self.Count:
+				Offset2 = unpack("<I", self.VTable.read(4))[0]
 				Size = Offset1 - Offset2
+				# Reset to simulate sliding window
+				self.VTable.seek(cp + 4)
 			else:
 				self.Data.seek(0, 2)
-				Size = Offset1 - self.Data.tell()
+				Size = self.Data.tell() - Offset1
+
+
+
 			self.Info.append(
-				{	"Index": i,
+				{
+					"Index": i,
 					"Offset": Offset1,
 					"Size": Size,
 				}
 			)
-			self.VTable.seek(cp + 4)
 		return self.Info
+
 
 	def ExportPointer(self, wantedIndex, file, Schema: dict = None, name='OUT'):
 		self.YourJSON = {
