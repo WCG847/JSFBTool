@@ -3,7 +3,7 @@ from tkinter import filedialog, messagebox
 from tkinter import ttk
 import os
 
-from cjsfb import Jsfb  # Assumes cjsfb.py is in the same directory
+from cjsfb import Jsfb
 
 class JSFBGui:
     def __init__(self, master):
